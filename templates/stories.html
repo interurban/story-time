@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}My Stories - Bedtime Story Generator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="card-title mb-0">
+                        <i class="fas fa-book me-2"></i>My Stories
+                    </h1>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>New Story
+                    </a>
+                </div>
+                
+                {% if stories.items %}
+                <div class="row">
+                    {% for story in stories.items %}
+                    <div class="col-lg-6 col-xl-4 mb-4">
+                        <div class="card h-100 story-card">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">{{ story.title }}</h5>
+                                <p class="card-text text-muted small mb-2">
+                                    <i class="fas fa-tag me-1"></i>{{ story.theme.title() }}
+                                    <span class="ms-2">
+                                        <i class="fas fa-birthday-cake me-1"></i>Age {{ story.age_group }}
+                                    </span>
+                                    {% if story.child_name %}
+                                    <span class="ms-2">
+                                        <i class="fas fa-user me-1"></i>{{ story.child_name }}
+                                    </span>
+                                    {% endif %}
+                                </p>
+                                <p class="card-text small mb-3">
+                                    {{ story.content[:100] }}{% if story.content|length > 100 %}...{% endif %}
+                                </p>
+                                <div class="mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            {{ story.created_date.strftime('%b %d, %Y') }}
+                                        </small>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('view_story', story_id=story.id) }}" 
+                                               class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('edit_story', story_id=story.id) }}" 
+                                               class="btn btn-outline-secondary btn-sm">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{{ url_for('export_pdf', story_id=story.id) }}" 
+                                               class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                            <button class="btn btn-outline-danger btn-sm" 
+                                                    onclick="confirmDelete({{ story.id }}, '{{ story.title }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if stories.pages > 1 %}
+                <nav aria-label="Stories pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if stories.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('list_stories', page=stories.prev_num) }}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for page_num in stories.iter_pages() %}
+                        {% if page_num %}
+                        {% if page_num != stories.page %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('list_stories', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% if stories.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('list_stories', page=stories.next_num) }}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                    <h3 class="text-muted">No stories yet</h3>
+                    <p class="text-muted">Create your first magical bedtime story!</p>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-magic me-1"></i>Generate Your First Story
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Confirm Delete
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the story "<span id="deleteStoryTitle"></span>"?</p>
+                <p class="text-muted small">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Delete Story
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete(storyId, storyTitle) {
+    document.getElementById('deleteStoryTitle').textContent = storyTitle;
+    document.getElementById('deleteForm').action = `/story/${storyId}/delete`;
+    
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    deleteModal.show();
+}
+</script>
+
+<style>
+.story-card {
+    transition: transform 0.2s ease;
+}
+
+.story-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+</style>
+{% endblock %}

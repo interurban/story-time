@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ story.title }} - Bedtime Story Generator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title mb-4">
+                    <i class="fas fa-edit me-2"></i>Edit Story
+                </h1>
+                
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">
+                            <i class="fas fa-heading me-1"></i>Story Title
+                        </label>
+                        <input type="text" class="form-control" id="title" name="title" 
+                               value="{{ story.title }}" required>
+                        <div class="form-text">Give your story a memorable title</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="user_notes" class="form-label">
+                            <i class="fas fa-sticky-note me-1"></i>Personal Notes (Optional)
+                        </label>
+                        <textarea class="form-control" id="user_notes" name="user_notes" rows="4" 
+                                  placeholder="Add any personal notes about this story...">{{ story.user_notes or '' }}</textarea>
+                        <div class="form-text">Notes for your reference (not part of the story)</div>
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title">Story Information</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="text-muted mb-1">
+                                        <strong>Theme:</strong> {{ story.theme.title() }}
+                                    </p>
+                                    <p class="text-muted mb-1">
+                                        <strong>Age Group:</strong> {{ story.age_group }} years old
+                                    </p>
+                                    {% if story.child_name %}
+                                    <p class="text-muted mb-1">
+                                        <strong>Created for:</strong> {{ story.child_name }}
+                                    </p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="text-muted mb-1">
+                                        <strong>Length:</strong> {{ story.story_length.title() }}
+                                    </p>
+                                    <p class="text-muted mb-0">
+                                        <strong>Created:</strong> {{ story.created_date.strftime('%B %d, %Y') }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Save Changes
+                        </button>
+                        <a href="{{ url_for('view_story', story_id=story.id) }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Story Preview -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-eye me-2"></i>Story Preview
+                </h5>
+                <div class="story-content">
+                    {% for paragraph in story.content.split('\n\n') %}
+                    {% if paragraph.strip() %}
+                    <p>{{ paragraph.strip() }}</p>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h1 class="card-title text-center mb-4">
+                    <i class="fas fa-magic me-2"></i>Create a Magical Bedtime Story
+                </h1>
+                <p class="text-center text-muted mb-4">
+                    Tell us what kind of story you'd like, and we'll create a personalized bedtime adventure!
+                </p>
+                
+                <form id="storyForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="theme" class="form-label">
+                                <i class="fas fa-lightbulb me-1"></i>Story Theme or Idea
+                            </label>
+                            <input type="text" class="form-control" id="theme" name="theme" 
+                                   placeholder="e.g., brave princess, space adventure, friendly dragon"
+                                   required>
+                            <div class="form-text">What would you like the story to be about?</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="child_name" class="form-label">
+                                <i class="fas fa-user me-1"></i>Child's Name (Optional)
+                            </label>
+                            <input type="text" class="form-control" id="child_name" name="child_name" 
+                                   placeholder="Enter child's name">
+                            <div class="form-text">We'll make them the hero of the story!</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="age_group" class="form-label">
+                                <i class="fas fa-birthday-cake me-1"></i>Child's Age
+                            </label>
+                            <select class="form-select" id="age_group" name="age_group">
+                                <option value="3">3 years old</option>
+                                <option value="4">4 years old</option>
+                                <option value="5">5 years old</option>
+                                <option value="6" selected>6 years old</option>
+                                <option value="7">7 years old</option>
+                                <option value="8">8 years old</option>
+                                <option value="9">9 years old</option>
+                                <option value="10">10 years old</option>
+                                <option value="11">11 years old</option>
+                                <option value="12">12 years old</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="story_length" class="form-label">
+                                <i class="fas fa-clock me-1"></i>Story Length
+                            </label>
+                            <select class="form-select" id="story_length" name="story_length">
+                                <option value="short">Short (2-3 minutes)</option>
+                                <option value="medium" selected>Medium (5-7 minutes)</option>
+                                <option value="long">Long (8-10 minutes)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary btn-lg" id="generateBtn">
+                            <i class="fas fa-magic me-2"></i>Generate Story
+                        </button>
+                        <div class="loading-spinner mt-3" id="loadingSpinner">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Generating your story...</span>
+                            </div>
+                            <p class="mt-2">Creating your magical story...</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Popular Themes -->
+        {% if popular_themes %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-star me-2"></i>Popular Themes
+                </h5>
+                <p class="text-muted mb-3">Click on any theme to use it for your story</p>
+                <div>
+                    {% for theme in popular_themes %}
+                    <span class="theme-chip" onclick="selectTheme('{{ theme.name }}')">
+                        {{ theme.name.title() }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Generated Story Display -->
+        <div class="card" id="storyDisplay" style="display: none;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h3 class="card-title" id="storyTitle"></h3>
+                    <div class="btn-group">
+                        <button class="btn btn-outline-primary btn-sm" onclick="downloadPDF()" id="pdfBtn">
+                            <i class="fas fa-download me-1"></i>PDF
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" onclick="printStory()">
+                            <i class="fas fa-print me-1"></i>Print
+                        </button>
+                    </div>
+                </div>
+                <div class="story-content" id="storyContent"></div>
+                <div class="mt-3 text-muted small" id="storyMeta"></div>
+            </div>
+        </div>
+        
+        <!-- Recent Stories -->
+        {% if recent_stories %}
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-clock me-2"></i>Recent Stories
+                </h5>
+                <div class="row">
+                    {% for story in recent_stories %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ story.title }}</h6>
+                                <p class="card-text text-muted small">
+                                    {{ story.theme.title() }} • Age {{ story.age_group }} • {{ story.created_date.strftime('%b %d') }}
+                                </p>
+                                <a href="{{ url_for('view_story', story_id=story.id) }}" class="btn btn-sm btn-outline-primary">
+                                    Read Story
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('list_stories') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-book me-1"></i>View All Stories
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentStoryId = null;
+
+document.getElementById('storyForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    generateStory();
+});
+
+async function generateStory() {
+    const form = document.getElementById('storyForm');
+    const formData = new FormData(form);
+    const generateBtn = document.getElementById('generateBtn');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const storyDisplay = document.getElementById('storyDisplay');
+    
+    // Show loading state
+    generateBtn.disabled = true;
+    loadingSpinner.style.display = 'block';
+    storyDisplay.style.display = 'none';
+    
+    try {
+        const response = await fetch('/generate', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Display the generated story
+            currentStoryId = data.story.id;
+            document.getElementById('storyTitle').textContent = data.story.title;
+            document.getElementById('storyContent').innerHTML = formatStoryContent(data.story.content);
+            document.getElementById('storyMeta').innerHTML = `
+                <strong>Theme:</strong> ${data.story.theme} | 
+                <strong>Age:</strong> ${data.story.age_group} years | 
+                <strong>Created:</strong> ${data.story.created_date}
+                ${data.story.child_name ? ` | <strong>For:</strong> ${data.story.child_name}` : ''}
+            `;
+            
+            storyDisplay.style.display = 'block';
+            storyDisplay.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            alert('Error generating story: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error generating story: ' + error.message);
+    } finally {
+        // Hide loading state
+        generateBtn.disabled = false;
+        loadingSpinner.style.display = 'none';
+    }
+}
+
+function formatStoryContent(content) {
+    // Convert line breaks to paragraphs
+    return content.split('\n\n').map(paragraph => 
+        `<p>${paragraph.trim()}</p>`
+    ).join('');
+}
+
+function downloadPDF() {
+    if (currentStoryId) {
+        window.open(`/story/${currentStoryId}/pdf`, '_blank');
+    }
+}
+
+function printStory() {
+    const printWindow = window.open('', '_blank');
+    const storyTitle = document.getElementById('storyTitle').textContent;
+    const storyContent = document.getElementById('storyContent').innerHTML;
+    
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>${storyTitle}</title>
+            <style>
+                body { font-family: 'Times New Roman', serif; margin: 40px; line-height: 1.6; }
+                h1 { text-align: center; color: #333; margin-bottom: 30px; }
+                p { margin-bottom: 15px; font-size: 14px; }
+                @media print { body { margin: 20px; } }
+            </style>
+        </head>
+        <body>
+            <h1>${storyTitle}</h1>
+            ${storyContent}
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.print();
+}
+</script>
+{% endblock %}
