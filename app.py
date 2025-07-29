@@ -16,13 +16,24 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///stories.db')
+
+# Handle both PostgreSQL and SQLite URLs
+database_url = os.getenv('DATABASE_URL', 'sqlite:///stories.db')
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
 # Initialize OpenAI
-openai.api_key = os.getenv('OPENAI_API_KEY')
+openai_api_key = os.getenv('OPENAI_API_KEY')
+if not openai_api_key:
+    print("Warning: OPENAI_API_KEY not set. Story generation will not work.")
+    print("Please set your OpenAI API key in the environment variables.")
+
+openai.api_key = openai_api_key
 
 # Database Models
 class Story(db.Model):
@@ -60,6 +71,11 @@ class StoryGenerator:
     
     def generate_story(self, theme, age_group, child_name=None, story_length='medium'):
         """Generate a bedtime story using OpenAI API"""
+        
+        # Check if API key is available
+        if not openai_api_key:
+            return self._generate_demo_story(theme, age_group, child_name, story_length)
+        
         try:
             # Build the prompt
             word_count = self.length_configs[story_length]['words']
@@ -121,6 +137,58 @@ Please write the story now:"""
                 'content': f'Sorry, there was an error generating your story: {str(e)}',
                 'success': False
             }
+    
+    def _generate_demo_story(self, theme, age_group, child_name=None, story_length='medium'):
+        """Generate a demo story when OpenAI API is not available"""
+        child_name = child_name or "Alex"
+        
+        demo_stories = {
+            'brave princess': {
+                'title': f'{child_name} and the Crystal Castle',
+                'content': f"""Once upon a time, in a land filled with shimmering rainbows and gentle clouds, there lived a brave little person named {child_name}. {child_name} had always dreamed of visiting the magical Crystal Castle that sparkled on top of the highest hill.
+
+One sunny morning, {child_name} decided it was time for an adventure. With a small backpack filled with snacks and a heart full of courage, {child_name} began the journey up the winding path.
+
+Along the way, {child_name} met a lost baby rabbit who was crying softly. "Don't worry, little friend," said {child_name} kindly. "I'll help you find your family." Together, they searched until they found the rabbit's cozy burrow.
+
+The grateful rabbit's mother gave {child_name} a special crystal that glowed with warm, golden light. "This will guide you safely," she said with a smile.
+
+When {child_name} finally reached the Crystal Castle, the doors opened wide to reveal a beautiful garden filled with flowers that sang gentle lullabies. The castle's wise guardian appeared and said, "Your kindness to the little rabbit has shown your true bravery. Welcome to our peaceful kingdom."
+
+{child_name} spent the day playing with friendly crystal butterflies and listening to the flowers' soothing songs. As the sun began to set, painting the sky in soft pastels, {child_name} knew it was time to go home.
+
+The journey back was quick and easy, guided by the magical crystal's warm glow. {child_name} arrived home just as the first stars appeared, feeling proud of the day's adventure and the new friendship made along the way.
+
+That night, {child_name} fell asleep peacefully, dreaming of crystal butterflies and gentle lullabies, knowing that tomorrow would bring new adventures and chances to help others."""
+            },
+            'space adventure': {
+                'title': f'{child_name} and the Sleepy Stars',
+                'content': f"""High above the clouds, where the stars twinkle like diamonds, lived a young space explorer named {child_name}. {child_name} had a special rocket ship painted in soft blues and silvers that could fly among the stars.
+
+One peaceful evening, {child_name} noticed that some stars seemed dimmer than usual. "I wonder if they're feeling sleepy," thought {child_name}. With a gentle whoosh, the rocket ship lifted off into the velvet night sky.
+
+As {child_name} flew closer to the stars, they discovered that the stars were indeed very tired. "We've been shining all day and all night," yawned a particularly drowsy star. "We need someone to sing us a lullaby."
+
+{child_name} had the perfect idea. From the rocket ship's special music box, {child_name} played the most beautiful, gentle melody that floated through space like silver ribbons. One by one, the tired stars began to smile and shine more brightly.
+
+The moon, who had been watching with delight, gave {child_name} a gift – a small bottle of moonbeam dust that sparkled like glitter. "Sprinkle this wherever you go," said the moon kindly, "and it will bring peaceful dreams."
+
+{child_name} flew home slowly, sprinkling the magical moonbeam dust over all the houses below. Children everywhere began to have the most wonderful, peaceful dreams filled with gentle starlight and soft lullabies.
+
+Back on Earth, {child_name} parked the rocket ship safely in the backyard and climbed into bed. The friendly stars winked goodnight through the window, and {child_name} drifted off to sleep, surrounded by the gentle glow of moonbeam dust and the quiet songs of happy stars."""
+            }
+        }
+        
+        # Use a default story if theme not found
+        story_key = theme.lower() if theme.lower() in demo_stories else 'brave princess'
+        story = demo_stories[story_key]
+        
+        return {
+            'title': story['title'],
+            'content': story['content'],
+            'success': True,
+            'demo': True
+        }
 
 # Initialize story generator
 story_generator = StoryGenerator()
@@ -236,6 +304,7 @@ def generate_story():
             
             return jsonify({
                 'success': True,
+                'demo': result.get('demo', False),
                 'story': {
                     'id': story.id,
                     'title': story.title,
@@ -345,4 +414,5 @@ def create_tables():
 create_tables()
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=os.getenv('FLASK_ENV') == 'development', host='0.0.0.0', port=port)

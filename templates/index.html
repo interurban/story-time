@@ -188,12 +188,27 @@ async function generateStory() {
             currentStoryId = data.story.id;
             document.getElementById('storyTitle').textContent = data.story.title;
             document.getElementById('storyContent').innerHTML = formatStoryContent(data.story.content);
-            document.getElementById('storyMeta').innerHTML = `
+            
+            let metaHtml = `
                 <strong>Theme:</strong> ${data.story.theme} | 
                 <strong>Age:</strong> ${data.story.age_group} years | 
                 <strong>Created:</strong> ${data.story.created_date}
                 ${data.story.child_name ? ` | <strong>For:</strong> ${data.story.child_name}` : ''}
             `;
+            
+            // Add demo notice if in demo mode
+            if (data.demo) {
+                metaHtml = `
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <strong>Demo Mode:</strong> This is a sample story. To generate personalized AI stories, 
+                        set up your own instance with an OpenAI API key.
+                    </div>
+                    ${metaHtml}
+                `;
+            }
+            
+            document.getElementById('storyMeta').innerHTML = metaHtml;
             
             storyDisplay.style.display = 'block';
             storyDisplay.scrollIntoView({ behavior: 'smooth' });

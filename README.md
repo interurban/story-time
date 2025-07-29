@@ -59,6 +59,26 @@ A Python Flask web application that generates personalized bedtime stories for c
 
 6. **Open your browser** and go to `http://localhost:5000`
 
+## 🚀 Live Demo
+
+Want to try it without installing? **[Try the live demo here!](https://bedtime-story-generator.onrender.com)**
+
+*Note: The demo may take 30+ seconds to load initially due to free hosting limitations.*
+
+## 🌐 Deploy Your Own
+
+Deploy your own version for free:
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/interurban/story-time)
+
+**Quick Deploy Steps:**
+1. Click the button above
+2. Sign up/log in to Render
+3. Set your `OPENAI_API_KEY` environment variable
+4. Deploy!
+
+For detailed instructions, see [DEPLOY.md](DEPLOY.md).
+
 ## Usage
 
 1. **Generate a Story**:
