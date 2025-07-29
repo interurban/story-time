@@ -480,22 +480,22 @@ def create_tables():
         
         # Add some default themes if none exist
         if Theme.query.count() == 0:
-        default_themes = [
-            {'name': 'brave princess', 'category': 'fairy_tale', 'description': 'Stories about courageous princesses'},
-            {'name': 'space adventure', 'category': 'adventure', 'description': 'Exciting journeys through space'},
-            {'name': 'friendly dragon', 'category': 'fantasy', 'description': 'Tales of kind-hearted dragons'},
-            {'name': 'magical forest', 'category': 'fantasy', 'description': 'Adventures in enchanted forests'},
-            {'name': 'underwater kingdom', 'category': 'fantasy', 'description': 'Stories from beneath the sea'},
-            {'name': 'superhero animals', 'category': 'adventure', 'description': 'Animals with special powers'},
-            {'name': 'time travel', 'category': 'adventure', 'description': 'Journeys through different time periods'},
-            {'name': 'talking toys', 'category': 'fantasy', 'description': 'Adventures with living toys'},
-        ]
-        
-        for theme_data in default_themes:
-            theme = Theme(**theme_data, popularity_score=1)
-            db.session.add(theme)
-        
-        db.session.commit()
+            default_themes = [
+                {'name': 'brave princess', 'category': 'fairy_tale', 'description': 'Stories about courageous princesses'},
+                {'name': 'space adventure', 'category': 'adventure', 'description': 'Exciting journeys through space'},
+                {'name': 'friendly dragon', 'category': 'fantasy', 'description': 'Tales of kind-hearted dragons'},
+                {'name': 'magical forest', 'category': 'fantasy', 'description': 'Adventures in enchanted forests'},
+                {'name': 'underwater kingdom', 'category': 'fantasy', 'description': 'Stories from beneath the sea'},
+                {'name': 'superhero animals', 'category': 'adventure', 'description': 'Animals with special powers'},
+                {'name': 'time travel', 'category': 'adventure', 'description': 'Journeys through different time periods'},
+                {'name': 'talking toys', 'category': 'fantasy', 'description': 'Adventures with living toys'},
+            ]
+            
+            for theme_data in default_themes:
+                theme = Theme(**theme_data, popularity_score=1)
+                db.session.add(theme)
+            
+            db.session.commit()
 
 # Initialize the database
 create_tables()
