@@ -1,6 +1,31 @@
 {% extends "base.html" %}
 
 {% block content %}
+<!-- Demo Mode Warning Banner -->
+{% if demo_mode %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+        <div class="flex-grow-1">
+            <h6 class="alert-heading mb-1">
+                <i class="fas fa-flask me-1"></i>Demo Mode Active
+            </h6>
+            <p class="mb-2">
+                This app is running in demo mode with sample stories. To generate personalized AI stories, 
+                set up your OpenAI API key in the environment variables.
+            </p>
+            <small class="text-muted">
+                <strong>Get an API key:</strong> 
+                <a href="https://platform.openai.com/api-keys" target="_blank" class="text-decoration-none">
+                    platform.openai.com/api-keys <i class="fas fa-external-link-alt ms-1"></i>
+                </a>
+            </small>
+        </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
 <div class="row">
     <div class="col-lg-8 mx-auto">
         <div class="card mb-4">
@@ -199,10 +224,14 @@ async function generateStory() {
             // Add demo notice if in demo mode
             if (data.demo) {
                 metaHtml = `
-                    <div class="alert alert-info mb-3">
-                        <i class="fas fa-info-circle me-1"></i>
-                        <strong>Demo Mode:</strong> This is a sample story. To generate personalized AI stories, 
-                        set up your own instance with an OpenAI API key.
+                    <div class="alert alert-info border-0 mb-3" style="background: linear-gradient(45deg, rgba(13, 202, 240, 0.1), rgba(25, 135, 84, 0.1));">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-info-circle me-2 text-info"></i>
+                            <div>
+                                <strong>Demo Story:</strong> This is a sample story to showcase the app's functionality.
+                                <br><small class="text-muted">Configure an OpenAI API key to generate personalized AI stories.</small>
+                            </div>
+                        </div>
                     </div>
                     ${metaHtml}
                 `;

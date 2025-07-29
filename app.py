@@ -29,11 +29,16 @@ db = SQLAlchemy(app)
 
 # Initialize OpenAI
 openai_api_key = os.getenv('OPENAI_API_KEY')
-if not openai_api_key:
-    print("Warning: OPENAI_API_KEY not set. Story generation will not work.")
-    print("Please set your OpenAI API key in the environment variables.")
+DEMO_MODE = not openai_api_key
 
-openai.api_key = openai_api_key
+if DEMO_MODE:
+    print("🔶 DEMO MODE: Running without OpenAI API key")
+    print("   - Sample stories will be generated instead of AI stories")
+    print("   - To enable full AI functionality, set OPENAI_API_KEY environment variable")
+    print("   - Get an API key from: https://platform.openai.com/api-keys")
+else:
+    print("✅ OpenAI API key found - Full AI functionality enabled")
+    openai.api_key = openai_api_key
 
 # Database Models
 class Story(db.Model):
@@ -70,10 +75,10 @@ class StoryGenerator:
         }
     
     def generate_story(self, theme, age_group, child_name=None, story_length='medium'):
-        """Generate a bedtime story using OpenAI API"""
+        """Generate a bedtime story using OpenAI API or demo mode"""
         
-        # Check if API key is available
-        if not openai_api_key:
+        # Check if we're in demo mode
+        if DEMO_MODE:
             return self._generate_demo_story(theme, age_group, child_name, story_length)
         
         try:
@@ -132,11 +137,25 @@ Please write the story now:"""
             }
             
         except Exception as e:
-            return {
-                'title': 'Story Generation Error',
-                'content': f'Sorry, there was an error generating your story: {str(e)}',
-                'success': False
-            }
+            error_message = str(e)
+            if "api_key" in error_message.lower():
+                return {
+                    'title': 'API Configuration Error',
+                    'content': 'There seems to be an issue with the OpenAI API key configuration. Please check that your API key is valid and has sufficient credits.',
+                    'success': False
+                }
+            elif "quota" in error_message.lower() or "billing" in error_message.lower():
+                return {
+                    'title': 'API Quota Exceeded',
+                    'content': 'The OpenAI API quota has been exceeded. Please check your billing settings and try again later.',
+                    'success': False
+                }
+            else:
+                return {
+                    'title': 'Story Generation Error',
+                    'content': f'Sorry, there was an error generating your story. Please try again in a moment. If the problem persists, the app will work in demo mode.',
+                    'success': False
+                }
     
     def _generate_demo_story(self, theme, age_group, child_name=None, story_length='medium'):
         """Generate a demo story when OpenAI API is not available"""
@@ -176,12 +195,64 @@ The moon, who had been watching with delight, gave {child_name} a gift – a sma
 {child_name} flew home slowly, sprinkling the magical moonbeam dust over all the houses below. Children everywhere began to have the most wonderful, peaceful dreams filled with gentle starlight and soft lullabies.
 
 Back on Earth, {child_name} parked the rocket ship safely in the backyard and climbed into bed. The friendly stars winked goodnight through the window, and {child_name} drifted off to sleep, surrounded by the gentle glow of moonbeam dust and the quiet songs of happy stars."""
+            },
+            'friendly dragon': {
+                'title': f'{child_name} and the Rainbow Dragon',
+                'content': f"""In a valley surrounded by rolling green hills, there lived a gentle dragon named Rainbow who had scales that shimmered with every color imaginable. Unlike the scary dragons in old stories, Rainbow was kind and loved making friends with children.
+
+One day, a curious child named {child_name} was exploring the hills when they heard a soft, musical humming. Following the sound, {child_name} discovered Rainbow sitting by a peaceful pond, carefully tending to a garden of the most beautiful flowers anyone had ever seen.
+
+"Hello there," said Rainbow with a warm smile. "I'm Rainbow, and I take care of this magical garden. Each flower here represents a different dream that children have at night."
+
+{child_name} was amazed to see flowers that glowed like stars, petals that sparkled like jewels, and blooms that seemed to dance in the gentle breeze. "They're beautiful!" {child_name} exclaimed.
+
+Rainbow explained that every night, the dragon would collect the sweetest dreams from the flowers and blow them gently into the wind, so they could find their way to sleeping children all around the world.
+
+"Would you like to help me tonight?" asked Rainbow. {child_name} nodded eagerly, and together they carefully gathered the dream-essence from each flower. Rainbow showed {child_name} how to whisper kind wishes into the magical mist.
+
+As the evening stars appeared, Rainbow gently breathed the collected dreams into the night sky, where they transformed into twinkling lights that danced toward distant homes. {child_name} watched in wonder as the dreams floated away like gentle fireflies.
+
+"Thank you for helping me," said Rainbow. "Because of your kindness, children everywhere will have especially sweet dreams tonight." Rainbow gave {child_name} a small, glowing flower to take home as a reminder of their magical friendship.
+
+That night, {child_name} placed the special flower by the window and fell asleep with the biggest smile, knowing that somewhere in the hills, Rainbow was making sure everyone had wonderful dreams."""
+            },
+            'magical forest': {
+                'title': f'{child_name} and the Whispering Trees',
+                'content': f"""Deep in an enchanted forest where sunbeams danced through emerald leaves, there stood trees that could whisper the most wonderful secrets. A curious child named {child_name} discovered this magical place while following a pathway of golden leaves.
+
+As {child_name} walked deeper into the forest, the trees began to whisper gentle greetings. "Welcome, young friend," rustled the wise old oak. "We've been waiting for someone with a kind heart like yours."
+
+The trees explained that they were the guardians of all the forest creatures, and they needed {child_name}'s help. The woodland animals were preparing for their annual Festival of Friendship, but they had lost their way to the celebration clearing.
+
+{child_name} eagerly agreed to help. Following the whispered directions from the trees, {child_name} found a family of lost hedgehogs, guided a confused owl back to his tree, and helped a shy deer find her courage to join the celebration.
+
+As the sun began to set, {child_name} arrived at a beautiful clearing where animals of all kinds had gathered. There were rabbits with flower crowns, squirrels sharing acorns, and butterflies creating colorful patterns in the air.
+
+The animals cheered when they saw {child_name} and invited their new friend to join the celebration. They danced under the starlight, shared stories, and the trees provided the most beautiful music by rustling their leaves in harmony.
+
+As a thank-you gift, the animals presented {child_name} with a special acorn that would always glow softly, serving as a reminder that kindness and helping others creates the most magical adventures.
+
+When it was time to go home, the trees whispered directions for the safest path, and fireflies lit the way. {child_name} arrived home feeling grateful for the new friends and the magical day in the whispering forest.
+
+That night, {child_name} held the glowing acorn close and fell asleep to the gentle memory of the trees' whispered songs, dreaming of more adventures with forest friends."""
             }
         }
         
-        # Use a default story if theme not found
-        story_key = theme.lower() if theme.lower() in demo_stories else 'brave princess'
-        story = demo_stories[story_key]
+        # Use a matching story or default
+        story_key = None
+        for key in demo_stories.keys():
+            if key.lower() in theme.lower() or theme.lower() in key.lower():
+                story_key = key
+                break
+        
+        if not story_key:
+            # Use first story as default but customize it
+            story_key = 'magical forest'
+            story = demo_stories[story_key]
+            # Customize title for the specific theme
+            story['title'] = f"{child_name} and the {theme.title()} Adventure"
+        else:
+            story = demo_stories[story_key]
         
         return {
             'title': story['title'],
@@ -256,7 +327,23 @@ def index():
     """Home page with story generation form"""
     recent_stories = Story.query.order_by(Story.created_date.desc()).limit(5).all()
     popular_themes = Theme.query.order_by(Theme.popularity_score.desc()).limit(10).all()
-    return render_template('index.html', recent_stories=recent_stories, popular_themes=popular_themes)
+    return render_template('index.html', 
+                         recent_stories=recent_stories, 
+                         popular_themes=popular_themes,
+                         demo_mode=DEMO_MODE)
+
+# Make demo_mode available to all templates
+@app.context_processor
+def inject_demo_mode():
+    return {'demo_mode': DEMO_MODE}
+
+@app.route('/api/status')
+def api_status():
+    """API endpoint to check demo mode status"""
+    return jsonify({
+        'demo_mode': DEMO_MODE,
+        'openai_configured': not DEMO_MODE
+    })
 
 @app.route('/generate', methods=['POST'])
 def generate_story():
