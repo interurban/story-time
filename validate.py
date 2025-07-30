@@ -28,19 +28,28 @@ def main():
     """Main validation function"""
     print("🔍 Running code validation...")
     
-    # Files to check
-    python_files = [
-        'app.py'
-    ]
+    # Find all Python files in the project
+    python_files = []
+    for root, dirs, files in os.walk('.'):
+        # Skip hidden directories and common build/cache directories
+        dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['__pycache__', 'venv', 'env', 'node_modules']]
+        for file in files:
+            if file.endswith('.py'):
+                python_files.append(os.path.join(root, file))
+    
+    if not python_files:
+        print("⚠️  No Python files found in the project")
+        return 1
+    
+    print(f"Found {len(python_files)} Python files to validate:")
+    for file in python_files:
+        print(f"  - {file}")
+    print()
     
     all_good = True
     
     for file in python_files:
-        if os.path.exists(file):
-            if not validate_python_file(file):
-                all_good = False
-        else:
-            print(f"⚠️  {file}: File not found")
+        if not validate_python_file(file):
             all_good = False
     
     if all_good:
