@@ -61,7 +61,7 @@ A Python Flask web application that generates personalized bedtime stories for c
 
 ## 🚀 Live Demo
 
-Want to try it without installing? **[Try the live demo here!](https://bedtime-story-generator.onrender.com)**
+Want to try it without installing? **[Try the live demo here!](https://bedtime-story-generator-g12f.onrender.com/)**
 
 *Note: The demo may take 30+ seconds to load initially due to free hosting limitations.*
 
