@@ -194,6 +194,35 @@ set FLASK_ENV=development  # Windows
 python app.py
 ```
 
+### Code Quality and Linting
+
+The project includes tools for maintaining code quality:
+
+**Syntax Validation**
+```bash
+# Check all Python files for syntax errors
+python validate.py
+```
+
+**Code Linting with flake8**
+```bash
+# Install development dependencies (includes flake8)
+pip install -r requirements.txt
+
+# Run linting on all Python files
+flake8
+
+# Run linting on specific files
+flake8 app.py validate.py
+```
+
+The project includes a `.flake8` configuration file with basic recommended rules. Flake8 will check for:
+- PEP 8 style violations
+- Syntax errors
+- Import issues
+- Code complexity
+- Line length limits (88 characters)
+
 ### Database Management
 
 The application uses SQLite by default. The database file (`stories.db`) is created automatically when you first run the app.
